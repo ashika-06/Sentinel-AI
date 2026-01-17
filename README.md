@@ -1,7 +1,6 @@
-
 # 🛡️ Sentinel-AI: Autonomous Cyber Defense Node
 
-> **Status:** Active | **Version:** 1.0.0 | **Compliance:** Ethical/Passive
+> **Status:** Active | **Version:** 1.0.0 | **Compliance:** Ethical/Passive | **Mode:** Sandbox
 
 ## 📖 Overview
 Sentinel-AI is a next-generation threat intelligence tool designed to solve "Analysis Paralysis."
@@ -18,10 +17,13 @@ In 2025, security teams are drowning in raw logs. Finding data isn't the problem
 ## ⚡ Key Features
 * **🛡️ Passive Reconnaissance:** Maps network topology without sending active packets. It is undetectable by target firewalls.
 * **🤖 AI Analyst:** Converts raw open port data into specific attack vector scenarios (e.g., distinguishing between a generic DNS server and a DDoS amplification node).
+* **🔒 Sandbox Mode (Active):** Input is currently restricted to a whitelist of authorized infrastructure (Google DNS, Cloudflare, Scanme) to ensure 100% safety during hackathon demonstrations.
 * **🌍 Visual Telemetry:** Interactive geospatial threat tracking.
-* **🔒 Zero-Trust Architecture:** Evaluates targets based on technical configuration, not just reputation.
 
 ## ⚖️ Legal Disclaimer
-This tool is engineered for **Passive Reconnaissance** only. It relies strictly on public API queries (Shodan) and does not initiate direct network connections to target infrastructure. It is fully compliant for educational and defensive research.
+This tool is engineered for **Passive Reconnaissance** only. It relies strictly on public API queries (Shodan) and does not initiate direct network connections to target infrastructure. 
 
+**Note:** For the purpose of this demonstration, manual IP entry has been disabled to prevent accidental scanning of unauthorized networks (e.g., venue Wi-Fi).
 
+---
+*Built for the 2026 Hackathon Season.*
