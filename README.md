@@ -24,5 +24,4 @@ In 2025, security teams are drowning in raw logs. Finding data isn't the problem
 ## ⚖️ Legal Disclaimer
 This tool is engineered for **Passive Reconnaissance** only. It relies strictly on public API queries (Shodan) and does not initiate direct network connections to target infrastructure. It is fully compliant for educational and defensive research.
 
----
-*Built for the 2026 Hackathon Season.*
+
