@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 from dotenv import load_dotenv
 import tools
 
@@ -13,6 +14,24 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# --- 🕵️ STEALTH MODE (CSS INJECTION) ---
+# This hides the "Made with Streamlit" footer and the Top-Right Menu
+# so users cannot see your GitHub link or "View Source".
+hide_menu_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Optional: Custom button styling to look more "Cyber" */
+    div.stButton > button:first-child {
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    </style>
+    """
+st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 # ===============================
 # 2. HEADER & SIDEBAR
@@ -38,7 +57,7 @@ with st.sidebar:
 # ===============================
 st.subheader("🎯 Target Acquisition")
 
-# 🔒 WHITELIST ONLY: This prevents scanning of unauthorized/private networks.
+# 🔒 WHITELIST ONLY: Prevents unauthorized scanning.
 target = st.selectbox("Select Authorized Node:", [
     "45.33.32.156 (Scanme Sandbox - Authorized)", 
     "1.1.1.1 (Cloudflare DNS)", 
@@ -47,68 +66,89 @@ target = st.selectbox("Select Authorized Node:", [
 ip = target.split(" ")[0]
 
 # ===============================
-# 4. MAIN EXECUTION
+# 4. SMART BUTTON (ANTI-SPAM LOGIC)
 # ===============================
-if st.button("🔴 INITIATE INTELLIGENCE SCAN", type="primary"):
-    
-    with st.status("🚀 Launching Sentinel Agents...", expanded=True) as status:
-        
-        # --- PHASE 1: SCAN (Shodan) ---
-        st.write("📡 Querying Shodan Satellite Feed...")
-        scan_data = tools.scan_target(ip)
-        # Note: 'time.sleep' removed for maximum speed ⚡
-        
-        if "error" in scan_data:
-            status.update(label="❌ Target Unreachable", state="error")
-            st.error(scan_data['error'])
-            st.stop()
-        
-        # --- PHASE 2: RESEARCH (Tavily) ---
-        st.write(f"🔎 Detected OS: **{scan_data['os']}**. Deploying Research Agent...")
-        exploits = tools.find_exploits(scan_data['os'])
-        
-        # --- PHASE 3: ANALYZE (Llama 3.3) ---
-        st.write("🧠 Aggregating Intelligence for Llama 3.3 Analysis...")
-        
-        final_prompt = f"""
-        Act as a Senior Cyber Defense Analyst.
-        TARGET: {scan_data}
-        THREATS: {exploits}
-        TASK:
-        1. Risk Level (Low/Med/High)
-        2. Key Risks of open ports (Explain technical impact)
-        3. One Mitigation Strategy
-        Keep it strictly professional and concise.
-        """
-        
-        report = tools.ask_ai(final_prompt)
-        
-        status.update(label="✅ Intelligence Gathered", state="complete", expanded=False)
 
-    # --- PHASE 4: DASHBOARD UI ---
-    col1, col2 = st.columns([1, 2])
+# Initialize the timer in session state if it doesn't exist
+if "last_scan" not in st.session_state:
+    st.session_state.last_scan = 0
+
+# Calculate how much time is left on the cooldown
+cooldown_duration = 15 # Seconds
+time_since_last = time.time() - st.session_state.last_scan
+time_left = cooldown_duration - time_since_last
+
+# Logic: If time_left is positive, we are still cooling down.
+if time_left > 0:
+    # 🛑 LOCKED STATE
+    btn_text = f"⏳ RECHARGING AGENTS... ({int(time_left)}s)"
+    st.button(btn_text, disabled=True)
     
-    with col1:
-        st.subheader("📊 Network Telemetry")
-        st.metric("Target OS", scan_data['os'])
-        st.metric("Open Ports", len(scan_data['ports']))
-        st.write("**Detected Ports:**")
-        st.json(scan_data['ports'])
+else:
+    # 🟢 ACTIVE STATE
+    if st.button("🔴 INITIATE INTELLIGENCE SCAN", type="primary"):
         
-    with col2:
-        st.subheader("📍 Target Triangulation")
-        if scan_data.get('lat'):
-            st.plotly_chart(
-                tools.draw_map(scan_data['lat'], scan_data['lon']), 
-                use_container_width=True
-            )
+        # 1. Update the timestamp immediately to lock the button for next time
+        st.session_state.last_scan = time.time()
+        
+        # 2. Run the Scan Process
+        with st.status("🚀 Launching Sentinel Agents...", expanded=True) as status:
             
-    st.markdown("---")
-    
-    # --- PHASE 5: REPORT & LOGGING ---
-    st.subheader("📝 Sentinel Strategic Report")
-    st.info(report)
-    
-    # Log to Supabase (Silent background operation)
-    tools.log_scan(ip, report)
-    st.toast("✅ Incident Encrypted & Archived")
+            # --- PHASE 1: SCAN (Shodan) ---
+            st.write("📡 Querying Shodan Satellite Feed...")
+            scan_data = tools.scan_target(ip)
+            
+            if "error" in scan_data:
+                status.update(label="❌ Target Unreachable", state="error")
+                st.error(scan_data['error'])
+                st.stop()
+            
+            # --- PHASE 2: RESEARCH (Tavily) ---
+            st.write(f"🔎 Detected OS: **{scan_data['os']}**. Deploying Research Agent...")
+            exploits = tools.find_exploits(scan_data['os'])
+            
+            # --- PHASE 3: ANALYZE (Llama 3.3) ---
+            st.write("🧠 Aggregating Intelligence for Llama 3.3 Analysis...")
+            
+            final_prompt = f"""
+            Act as a Senior Cyber Defense Analyst.
+            TARGET: {scan_data}
+            THREATS: {exploits}
+            TASK:
+            1. Risk Level (Low/Med/High)
+            2. Key Risks of open ports (Explain technical impact)
+            3. One Mitigation Strategy
+            Keep it strictly professional and concise.
+            """
+            
+            report = tools.ask_ai(final_prompt)
+            
+            status.update(label="✅ Intelligence Gathered", state="complete", expanded=False)
+
+        # --- PHASE 4: DASHBOARD UI ---
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            st.subheader("📊 Network Telemetry")
+            st.metric("Target OS", scan_data['os'])
+            st.metric("Open Ports", len(scan_data['ports']))
+            st.write("**Detected Ports:**")
+            st.json(scan_data['ports'])
+            
+        with col2:
+            st.subheader("📍 Target Triangulation")
+            if scan_data.get('lat'):
+                st.plotly_chart(
+                    tools.draw_map(scan_data['lat'], scan_data['lon']), 
+                    use_container_width=True
+                )
+            
+        st.markdown("---")
+        
+        # --- PHASE 5: REPORT & LOGGING ---
+        st.subheader("📝 Sentinel Strategic Report")
+        st.info(report)
+        
+        # Log to Supabase
+        tools.log_scan(ip, report)
+        st.toast("✅ Incident Encrypted & Archived")
