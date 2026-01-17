@@ -25,5 +25,3 @@ This tool is engineered for **Passive Reconnaissance** only. It relies strictly 
 
 **Note:** For the purpose of this demonstration, manual IP entry has been disabled to prevent accidental scanning of unauthorized networks (e.g., venue Wi-Fi).
 
----
-*Built for the 2026 Hackathon Season.*
