@@ -6,6 +6,7 @@ from openai import OpenAI
 from tavily import TavilyClient
 from supabase import create_client
 import plotly.express as px
+import time
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -107,7 +108,7 @@ def log_scan(ip: str, report: str) -> None:
     if url and key:
         try:
             result = create_client(url, key).table("scans").insert({
-                "scan_id": hashlib.sha256(ip.encode()).hexdigest()[:8], 
+                "scan_id": hashlib.sha256(f"{ip}{time.time()}".encode()).hexdigest()[:8], 
                 "report": report
             }).execute()
             st.write(f"DEBUG — insert result: {result}")
