@@ -102,18 +102,14 @@ def find_exploits(os_name: str) -> list:
 # 4. LOGGING (Supabase)
 # ===============================
 def log_scan(ip: str, report: str) -> None:
-    url, key = os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY")
-    st.write(f"DEBUG — url set: {bool(url)}, key set: {bool(key)}")
-    if url and key:
-        try:
-            result = create_client(url, key).table("scans").insert({
+    try:
+        url, key = os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY")
+        if url and key:
+            create_client(url, key).table("scans").insert({
                 "scan_id": hashlib.sha256(ip.encode()).hexdigest()[:8], 
                 "report": report
             }).execute()
-            st.write(f"DEBUG — insert result: {result}")
-        except Exception as e:
-            st.error(f"DEBUG — Supabase error: {e}")
-
+    except: pass
 # ===============================
 # 5. VISUALIZATION
 # ===============================
